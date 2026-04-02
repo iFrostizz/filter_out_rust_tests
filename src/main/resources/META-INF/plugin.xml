@@ -1,0 +1,15 @@
+<idea-plugin>
+    <id>dev.plugin.filteroutrusttests</id>
+    <name>Filter Out Rust Tests</name>
+    <vendor>Franfran</vendor>
+    <description><![CDATA[
+        Adds a Find Usages filter that excludes usages located in Rust #[test] functions.
+        The filter toggle is only shown for Rust usage searches.
+        ]]></description>
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.jetbrains.rust</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <usageFilteringRuleProvider implementation="dev.plugin.filteroutrusttests.NotRustTestsUsageFilteringRuleProvider"/>
+    </extensions>
+</idea-plugin>
