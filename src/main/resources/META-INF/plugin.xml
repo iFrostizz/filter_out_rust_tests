@@ -1,6 +1,6 @@
 <idea-plugin>
     <id>dev.plugin.filteroutrusttests</id>
-    <name>Filter Out Rust Tests</name>
+    <name>Filter out Rust Tests</name>
     <vendor>Franfran</vendor>
     <description><![CDATA[
         Adds a Find Usages filter that excludes usages located in Rust #[test] functions.
