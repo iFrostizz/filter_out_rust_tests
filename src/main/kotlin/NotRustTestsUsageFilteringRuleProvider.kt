@@ -37,18 +37,18 @@ class NotRustTestsUsageFilteringRuleProvider : UsageFilteringRuleProvider {
     ) {
         override fun isSelected(e: AnActionEvent): Boolean {
             val project = e.project ?: return false
-            return isEnabled(project)
+            return NotRustTestsUsageFilteringRuleProvider().isEnabled(project)
         }
 
         override fun setSelected(e: AnActionEvent, state: Boolean) {
             val project = e.project ?: return
-            setEnabled(project, state)
+            NotRustTestsUsageFilteringRuleProvider().setEnabled(project, state)
             project.messageBus.syncPublisher(UsageFilteringRuleProvider.RULES_CHANGED).run()
         }
 
         override fun update(e: AnActionEvent) {
             super.update(e)
-            val visible = isRustUsageView(view, e)
+            val visible = NotRustTestsUsageFilteringRuleProvider().isRustUsageView(view, e)
             e.presentation.isVisible = visible
             e.presentation.isEnabled = visible
         }
@@ -58,35 +58,35 @@ class NotRustTestsUsageFilteringRuleProvider : UsageFilteringRuleProvider {
 
     companion object {
         private const val ENABLED_KEY: String = "dev.plugin.filteroutrusttests.enabled"
+    }
 
-        private fun isEnabled(project: Project): Boolean {
-            return PropertiesComponent.getInstance(project).getBoolean(ENABLED_KEY, false)
+    private fun isEnabled(project: Project): Boolean {
+        return PropertiesComponent.getInstance(project).getBoolean(ENABLED_KEY, false)
+    }
+
+    private fun setEnabled(project: Project, enabled: Boolean) {
+        PropertiesComponent.getInstance(project).setValue(ENABLED_KEY, enabled, false)
+    }
+
+    private fun isRustUsageView(view: UsageView, event: AnActionEvent): Boolean {
+        val targets = event.getData(UsageView.USAGE_TARGETS_KEY)
+        if (targets != null && targets.any { target ->
+                val element = (target as? PsiElementUsageTarget)?.element ?: return@any false
+                isRustElement(element.language.id)
+            }) {
+            return true
         }
 
-        private fun setEnabled(project: Project, enabled: Boolean) {
-            PropertiesComponent.getInstance(project).setValue(ENABLED_KEY, enabled, false)
+        if (view.usages.any { usage ->
+                val element = (usage as? PsiElementUsage)?.element ?: return@any false
+                isRustElement(element.language.id)
+            }) {
+            return true
         }
+        return false
+    }
 
-        private fun isRustUsageView(view: UsageView, event: AnActionEvent): Boolean {
-            val targets = event.getData(UsageView.USAGE_TARGETS_KEY)
-            if (targets != null && targets.any { target ->
-                    val element = (target as? PsiElementUsageTarget)?.element ?: return@any false
-                    isRustElement(element.language.id)
-                }) {
-                return true
-            }
-
-            if (view.getUsages().any { usage ->
-                    val element = (usage as? PsiElementUsage)?.element ?: return@any false
-                    isRustElement(element.language.id)
-                }) {
-                return true
-            }
-            return false
-        }
-
-        private fun isRustElement(languageId: String): Boolean {
-            return languageId == "Rust"
-        }
+    private fun isRustElement(languageId: String): Boolean {
+        return languageId == "Rust"
     }
 }
