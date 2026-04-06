@@ -1,6 +1,9 @@
 import com.fasterxml.jackson.dataformat.toml.TomlMapper
+import com.intellij.ide.plugins.PluginManagerCore
+import com.intellij.openapi.extensions.PluginId
 import com.intellij.psi.PsiElement
-import com.intellij.psi.util.elementsAtOffsetUp
+import com.intellij.psi.impl.source.PsiPlainTextFileImpl
+import com.intellij.psi.util.elementType
 import com.intellij.psi.util.parentOfType
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
 import com.intellij.usages.Usage
@@ -10,8 +13,7 @@ import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
 import org.rust.lang.RsFileType
-import org.rust.lang.core.psi.RsFunction
-
+import org.rust.lang.core.psi.RsCallExpr
 
 class Position {
     var line: Int = 0
@@ -50,21 +52,31 @@ class NotRustTestsUsafeFilteringRuleProviderTest : BasePlatformTestCase() {
     }
 
     private fun runTestCase(testCase: TestCase) {
-        val file = myFixture.configureByText("main.rs", testCase.source)
-        assertFalse("file source is plain text", file is com.intellij.psi.impl.source.PsiPlainTextFileImpl)
+        myFixture.configureByText(RsFileType, /* language = Rust */ testCase.source.trimIndent())
+        val fileClass = myFixture.file::class
+        assertFalse("file source is not Rust, found $fileClass", fileClass is PsiPlainTextFileImpl)
         val offset = myFixture.caretOffset;
+//        println(offset);
         assertNotEquals("<caret> not found", 0, offset);
-        val leaf = myFixture.file.findElementAt(offset)
-            ?: error("No element at caret")
-        val function = leaf.parentOfType<RsFunction>()
-            ?: error("Not inside a function")
+        val element = myFixture.file.findElementAt(offset)!!
+//        println(element.elementType);
+//        println(element.text);
+        var current: PsiElement? = element
+        while (current != null) {
+            println("${current::class.simpleName} -> '${current.text}'")
+            current = current.parent
+        }
+//        val function = element.parentOfType<RsCallExpr>() ?: error("Not inside a function")
 
-        println(function.text) // should be "usage"
+//        println(function.text) // should be "usage"
 
         // assert against expected
     }
 
     fun testRustUsages() {
+        val rustPlugin = PluginManagerCore.getPlugin(PluginId.getId("com.jetbrains.rust"))
+        println("Rust plugin loaded: ${rustPlugin?.isEnabled}")
+
         val testCases = readTestCases("src/test/testData")
         testCases.forEach { runTestCase(it) }
     }

@@ -25,13 +25,14 @@ repositories {
 dependencies {
     intellijPlatform {
         rustRover("2026.1")
-        compatiblePlugin("com.jetbrains.rust")
-//        plugins(listOf("com.jetbrains.rust:261.22158.311"))
-
+        bundledPlugin("com.jetbrains.rust")
+        bundledPlugin("com.intellij.platform.images")
         testFramework(TestFrameworkType.Platform)
+//        plugin("com.intellij.platform.images")
     }
 
     testImplementation("junit:junit:4.13.2")
+    testImplementation("com.fasterxml.jackson.dataformat:jackson-dataformat-toml:2.15.0")
 }
 
 intellijPlatform {
@@ -56,6 +57,8 @@ tasks {
         gradleVersion = providers.gradleProperty("gradleVersion").get()
     }
     test {
+        systemProperty("idea.load.plugins", "com.jetbrains.rust")
+        systemProperty("idea.auto.reload.plugins", "true")
         inputs.dir("src/test/testData")
     }
 }

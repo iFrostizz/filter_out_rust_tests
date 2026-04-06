@@ -6,8 +6,9 @@
         Adds a Find Usages filter that excludes usages located in Rust #[test] functions.
         The filter toggle is only shown for Rust usage searches.
         ]]></description>
-    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.lang</depends>
     <depends>com.jetbrains.rust</depends>
+    <depends>com.intellij.platform.images</depends>
 
     <extensions defaultExtensionNs="com.intellij">
         <usageFilteringRuleProvider implementation="dev.plugin.filteroutrusttests.NotRustTestsUsageFilteringRuleProvider"/>
