@@ -1,0 +1,17 @@
+source = """
+fn usage() {}
+
+fn main() {
+    usag<caret>e();
+}
+
+#[cfg(test)]
+mod tests {
+    fn some_helper() {
+        usage();
+    }
+}
+"""
+expected = [
+    # TODO: usage in main but not in mod tests.
+]

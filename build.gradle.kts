@@ -1,3 +1,5 @@
+import org.jetbrains.intellij.platform.gradle.TestFrameworkType
+
 plugins {
     id("java")
     alias(libs.plugins.kotlin)
@@ -22,13 +24,14 @@ repositories {
 // Read more: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin.html
 dependencies {
     intellijPlatform {
-        rustRover("2026.1", configure = {
-            useCache = true
-        })
-        testFramework(org.jetbrains.intellij.platform.gradle.TestFrameworkType.Platform)
-
+        rustRover("2026.1")
         compatiblePlugin("com.jetbrains.rust")
+//        plugins(listOf("com.jetbrains.rust:261.22158.311"))
+
+        testFramework(TestFrameworkType.Platform)
     }
+
+    testImplementation("junit:junit:4.13.2")
 }
 
 intellijPlatform {
@@ -51,5 +54,8 @@ intellijPlatform {
 tasks {
     wrapper {
         gradleVersion = providers.gradleProperty("gradleVersion").get()
+    }
+    test {
+        inputs.dir("src/test/testData")
     }
 }
