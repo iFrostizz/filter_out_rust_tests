@@ -1,5 +1,5 @@
 <idea-plugin>
-    <id>dev.plugin.filteroutrusttests</id>
+    <id>com.github.filteroutrusttests</id>
     <name>Filter out Rust Tests</name>
     <vendor>Franfran</vendor>
     <description><![CDATA[
@@ -8,8 +8,9 @@
         ]]></description>
     <depends>com.intellij.modules.platform</depends>
     <depends>com.jetbrains.rust</depends>
+    <depends>org.toml.lang</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-        <usageFilteringRuleProvider implementation="dev.plugin.filteroutrusttests.NotRustTestsUsageFilteringRuleProvider"/>
+        <usageFilteringRuleProvider implementation="com.github.filteroutrusttests.NotRustTestsUsageFilteringRuleProvider"/>
     </extensions>
 </idea-plugin>

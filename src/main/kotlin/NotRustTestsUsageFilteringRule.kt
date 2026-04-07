@@ -1,4 +1,4 @@
-package dev.plugin.filteroutrusttests
+package com.github.filteroutrusttests
 
 import com.intellij.openapi.application.ReadAction
 import com.intellij.psi.PsiElement
@@ -30,6 +30,6 @@ class NotRustTestsUsageFilteringRule : UsageFilteringRule {
     }
 
     companion object {
-        const val RULE_ID: String = "dev.plugin.filteroutrusttests.notRustTests"
+        const val RULE_ID: String = "com.github.filteroutrusttests.notRustTests"
     }
 }

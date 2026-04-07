@@ -1,0 +1,18 @@
+source = """fn usag<caret>e() {}
+
+fn main() {
+    usage();
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn some_test() {
+        usage();
+    }
+}"""
+expected = [
+    { position = { line = 4, column = 5 }, visible = true },
+    { position = { line = 12, column = 9 }, visible = false }
+]

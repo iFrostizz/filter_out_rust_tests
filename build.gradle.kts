@@ -1,10 +1,13 @@
+import org.jetbrains.intellij.platform.gradle.TestFrameworkType
+
 plugins {
     id("java")
     alias(libs.plugins.kotlin)
     alias(libs.plugins.intellijPlatform)
+    alias(libs.plugins.intellijPlatformBase)
 }
 
-group = "dev.plugin.filteroutrusttests"
+group = "com.github.filteroutrusttests"
 version = "1.0.0"
 
 // Set the JVM language level used to build the project.
@@ -12,23 +15,20 @@ kotlin {
     jvmToolchain(21)
 }
 
-repositories {
-    mavenCentral()
-    intellijPlatform {
-        defaultRepositories()
-    }
-}
-
 // Read more: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin.html
 dependencies {
     intellijPlatform {
-        rustRover("2026.1", configure = {
-            useCache = true
-        })
-        testFramework(org.jetbrains.intellij.platform.gradle.TestFrameworkType.Platform)
+        rustRover("2026.1")
 
-        compatiblePlugin("com.jetbrains.rust")
+        bundledPlugins("com.jetbrains.rust", "org.toml.lang", "intellij.json")
+        bundledModules("intellij.json.backend", "intellij.toml.json")
+
+        testFramework(TestFrameworkType.Platform)
+
+        pluginVerifier()
     }
+
+    testImplementation("junit:junit:4.13.2")
 }
 
 intellijPlatform {
@@ -46,10 +46,17 @@ intellijPlatform {
             </ul>
         """.trimIndent()
     }
+    instrumentCode = true
 }
 
 tasks {
     wrapper {
         gradleVersion = providers.gradleProperty("gradleVersion").get()
+    }
+    test {
+        useJUnit()
+        inputs.dir("src/test/testData")
+//        systemProperty("idea.log.debug.categories", "com.intellij")
+//        systemProperty("idea.log.trace.categories", "com.intellij")
     }
 }
