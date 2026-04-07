@@ -1,4 +1,4 @@
-package dev.plugin.filteroutrusttests
+package com.github.filteroutrusttests
 
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -57,7 +57,7 @@ class NotRustTestsUsageFilteringRuleProvider : UsageFilteringRuleProvider {
     }
 
     companion object {
-        private const val ENABLED_KEY: String = "dev.plugin.filteroutrusttests.enabled"
+        private const val ENABLED_KEY: String = "com.github.filteroutrusttests.enabled"
     }
 
     private fun isEnabled(project: Project): Boolean {

@@ -1,5 +1,5 @@
 <idea-plugin>
-    <id>dev.plugin.filteroutrusttests</id>
+    <id>com.github.filteroutrusttests</id>
     <name>Filter out Rust Tests</name>
     <vendor>Franfran</vendor>
     <description><![CDATA[
@@ -8,9 +8,5 @@
         ]]></description>
     <depends>com.intellij.modules.lang</depends>
     <depends>com.jetbrains.rust</depends>
-    <depends>com.intellij.platform.images</depends>
-
-    <extensions defaultExtensionNs="com.intellij">
-        <usageFilteringRuleProvider implementation="dev.plugin.filteroutrusttests.NotRustTestsUsageFilteringRuleProvider"/>
-    </extensions>
+    <depends>org.toml.lang</depends>
 </idea-plugin>
