@@ -1,0 +1,38 @@
+source = """trait Num {
+    const MAX_V<caret>ALUE: Self;
+}
+
+impl Num for u32 {
+    const MAX_VALUE: u32 = u32::MAX;
+}
+
+impl Num for i16 {
+    const MAX_VALUE: i16 = i16::MAX;
+}
+
+pub fn main() {
+    dbg!(u32::MAX_VALUE);
+    dbg!(i16::MAX_VALUE);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Num;
+
+    #[test]
+    fn get_value() {
+        let num = max_value();
+        assert_eq!(num, u32::MAX);
+        let num = max_value();
+        assert_eq!(num, i16::MAX);
+    }
+
+    fn max_value<T: Num>() -> T {
+        T::MAX_VALUE
+    }
+}"""
+expected = [
+    { position = { line = 14, column = 15 }, visible = true },
+    { position = { line = 15, column = 15 }, visible = true },
+    { position = { line = 31, column = 12 }, visible = false },
+]

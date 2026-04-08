@@ -1,0 +1,10 @@
+[caret]
+path = "project/src/lib.rs"
+position = { line = 1, column = 8 }
+
+[[files]]
+path = "project/src/lib.rs"
+expected = [
+    { position = { line = 6, column = 5 }, visible = true },
+    { position = { line = 15, column = 22 }, visible = false }
+]

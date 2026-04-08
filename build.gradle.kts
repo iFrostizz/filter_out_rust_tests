@@ -56,6 +56,7 @@ tasks {
     test {
         useJUnit()
         inputs.dir("src/test/testData")
+        systemProperty("testDataPath", project.projectDir.resolve("src/test/testData").absolutePath)
 //        systemProperty("idea.log.debug.categories", "com.intellij")
 //        systemProperty("idea.log.trace.categories", "com.intellij")
     }

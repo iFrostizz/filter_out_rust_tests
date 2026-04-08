@@ -5,3 +5,6 @@
 build
 out
 *.iml
+
+src/test/testData/projects/**/**/target/
+src/test/testData/projects/**/**/Cargo.lock

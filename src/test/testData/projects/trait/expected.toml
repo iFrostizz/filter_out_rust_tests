@@ -1,0 +1,17 @@
+[caret]
+path = "src/lib.rs"
+position = { line = 1, column = 12 }
+
+[[files]]
+path = "src/lib.rs"
+expected = [
+    { position = { line = 5, column = 6 }, visible = true },
+    { position = { line = 13, column = 16 }, visible = true },
+    { position = { line = 15, column = 10 }, visible = true }
+]
+
+[[files]]
+path = "tests/integration.rs"
+expected = [
+    { position = { line = 3, column = 14 }, visible = false }
+]
