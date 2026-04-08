@@ -28,6 +28,7 @@ import com.intellij.usages.UsageInfo2UsageAdapter
 //import org.rust.lang.core.psi.ext.RsTraitOrImpl
 //import org.rust.openapiext.pathAsPath
 import java.io.File
+
 //import kotlin.io.path.Path
 //import kotlin.io.path.createTempDirectory
 //import kotlin.io.path.name
@@ -127,7 +128,7 @@ class NotRustTestsUsageFilteringRuleTest : BasePlatformTestCase() {
 
     private fun checkExpectedUsages(
         rule: NotRustTestsUsageFilteringRule, usages: Map<Position, Usage>, expected: List<Expected>
-    ) = runCatching {
+    ): Result<Unit> = runCatching {
         require(expected.isNotEmpty()) { "No expectations provided." }
         require(expected.size == usages.size) {
             "Usage count mismatch: found ${usages.size}, expected ${expected.size}. Found usages at: ${usages.keys}"
@@ -143,22 +144,19 @@ class NotRustTestsUsageFilteringRuleTest : BasePlatformTestCase() {
         }
     }
 
-    private fun runUnitTestCase(name: String, testCase: TestCase): Result<Unit> = runCatching {
+    private fun runUnitTestCase(name: String, testCase: TestCase): Result<Unit> {
         val caretString = "<caret>"
         val caretIndex = testCase.source.indexOf(caretString)
-        val finalSource = testCase.source.replace(caretString, "")
-        val file = myFixture.addFileToProject("$name.rs", finalSource.trimIndent())
-        myFixture.configureFromExistingVirtualFile(file.virtualFile)
-        if (caretIndex != -1) {
-            myFixture.editor.caretModel.moveToOffset(caretIndex)
+        if (caretIndex == -1) {
+            error("Caret not found in test case source")
         }
+        val file = myFixture.addFileToProject("$name.rs", testCase.source.trimIndent())
+        myFixture.configureFromExistingVirtualFile(file.virtualFile)
         val element = myFixture.file.findElementAt(myFixture.caretOffset) ?: error("No element at caret")
-        val namedElement = PsiTreeUtil.getParentOfType(element, RsFunction::class.java) ?: PsiTreeUtil.getParentOfType(
-            element, RsNamedElement::class.java
-        ) ?: element
+        val namedElement = element.parent
         val usages = collectUsages(namedElement)
         val rule = NotRustTestsUsageFilteringRule()
-        checkExpectedUsages(rule, usages, testCase.expected)
+        return checkExpectedUsages(rule, usages, testCase.expected)
     }
 
 //    private fun runProjectsTestCase(testCase: Pair<String, ProjectTestCases>): Result<Unit> = runCatching {

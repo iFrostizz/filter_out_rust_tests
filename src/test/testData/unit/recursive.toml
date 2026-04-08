@@ -1,0 +1,21 @@
+source = """fn usa<caret>ge() {}
+
+trait SomeTrait {
+    fn usage();
+}
+
+struct SomeType;
+
+#[cfg(test)]
+mod tests {
+    use super::{SomeTrait, SomeType};
+
+    impl SomeTrait for SomeType {
+        fn usage() {
+            super::usage();
+        }
+    }
+}"""
+expected = [
+    { position = { line = 15, column = 20 }, visible = false }
+]

@@ -7,7 +7,12 @@ import com.intellij.usages.Usage
 import com.intellij.usages.rules.PsiElementUsage
 import com.intellij.usages.rules.UsageFilteringRule
 import org.rust.lang.core.psi.RsFunction
+import org.rust.lang.core.psi.RsModDeclItem
+import org.rust.lang.core.psi.RsModItem
+import org.rust.lang.core.psi.ext.RsMod
+import org.rust.lang.core.psi.ext.attributeStub
 import org.rust.lang.core.psi.ext.isTest
+import org.rust.lang.core.psi.ext.isUnderCfgTest
 import org.rust.stdext.toPath
 import java.io.File
 import java.nio.file.Path
@@ -63,16 +68,17 @@ class NotRustTestsUsageFilteringRule : UsageFilteringRule {
     }
 
     private fun calculateIsInsideRustTest(element: PsiElement, visiting: MutableSet<PsiElement>): Boolean {
+        if (element.isUnderCfgTest) return true
+
         if (element is RsFunction) {
             if (element.isTest) return true
 
             val references = ReferencesSearch.search(element)
-            var hasReferences = false
             val allInTests = references.allMatch {
-                hasReferences = true
                 isInsideRustTestFunction(it.element, visiting)
             }
-            return hasReferences && allInTests
+
+            if (references.count() > 0 && allInTests) return true
         }
 
         val parent = element.parent ?: return false
