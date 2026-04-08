@@ -7,15 +7,8 @@ import com.intellij.usages.Usage
 import com.intellij.usages.rules.PsiElementUsage
 import com.intellij.usages.rules.UsageFilteringRule
 import org.rust.lang.core.psi.RsFunction
-import org.rust.lang.core.psi.RsModDeclItem
-import org.rust.lang.core.psi.RsModItem
-import org.rust.lang.core.psi.ext.RsMod
-import org.rust.lang.core.psi.ext.attributeStub
 import org.rust.lang.core.psi.ext.isTest
 import org.rust.lang.core.psi.ext.isUnderCfgTest
-import org.rust.stdext.toPath
-import java.io.File
-import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.io.path.name
@@ -26,13 +19,13 @@ class NotRustTestsUsageFilteringRule : UsageFilteringRule {
     private val memo = ConcurrentHashMap<PsiElement, Boolean>()
 
     override fun isVisible(usage: Usage): Boolean = ReadAction.compute<Boolean, RuntimeException> {
-        val path: Path = Paths.get(usage.location?.editor?.file?.path!!)
-        if (path.any { it.name == "tests" }) {
-            return@compute false
-        }
         val psiUsage = usage as? PsiElementUsage ?: return@compute true
         val element = psiUsage.element ?: return@compute true
+
+        if (isInTestLikeDir(element)) return@compute false
+
         if (!isRustElement(element)) return@compute true
+
         return@compute !shouldFilterOut(element)
     }
 
@@ -41,19 +34,20 @@ class NotRustTestsUsageFilteringRule : UsageFilteringRule {
         return languageId == "Rust"
     }
 
+    private fun isInTestLikeDir(element: PsiElement): Boolean {
+        val path = element.containingFile?.virtualFile?.path ?: return false
+        val p = Paths.get(path)
+        return p.any { it.name == "tests" || it.name == "benches" }
+    }
+
     private fun shouldFilterOut(element: PsiElement): Boolean {
         return isInsideRustTestFunction(element, mutableSetOf())
     }
 
-    private fun isInsideRustTestFunction(element: PsiElement, visiting: MutableSet<PsiElement>): Boolean {
+    private fun isInsideRustTestFunction(
+        element: PsiElement, visiting: MutableSet<PsiElement>
+    ): Boolean {
         memo[element]?.let { return it }
-
-        val filePath = File(element.project.projectFilePath ?: return false)
-        for (dir in arrayOf("tests", "benches")) {
-            val dir = File(dir)
-            val areRelated: Boolean = filePath.getCanonicalPath().contains(dir.getCanonicalPath() + File.separator)
-            if (areRelated) return true
-        }
 
         if (visiting.contains(element)) return false
 
@@ -67,13 +61,16 @@ class NotRustTestsUsageFilteringRule : UsageFilteringRule {
         }
     }
 
-    private fun calculateIsInsideRustTest(element: PsiElement, visiting: MutableSet<PsiElement>): Boolean {
+    private fun calculateIsInsideRustTest(
+        element: PsiElement, visiting: MutableSet<PsiElement>
+    ): Boolean {
         if (element.isUnderCfgTest) return true
 
         if (element is RsFunction) {
             if (element.isTest) return true
 
             val references = ReferencesSearch.search(element)
+
             val allInTests = references.allMatch {
                 isInsideRustTestFunction(it.element, visiting)
             }
