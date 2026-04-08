@@ -8,6 +8,8 @@ import com.intellij.usages.rules.PsiElementUsage
 import com.intellij.usages.rules.UsageFilteringRule
 import org.rust.lang.core.psi.RsFunction
 import org.rust.lang.core.psi.ext.isTest
+import org.rust.stdext.toPath
+import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.concurrent.ConcurrentHashMap
@@ -40,6 +42,14 @@ class NotRustTestsUsageFilteringRule : UsageFilteringRule {
 
     private fun isInsideRustTestFunction(element: PsiElement, visiting: MutableSet<PsiElement>): Boolean {
         memo[element]?.let { return it }
+
+        val filePath = File(element.project.projectFilePath ?: return false)
+        for (dir in arrayOf("tests", "benches")) {
+            val dir = File(dir)
+            val areRelated: Boolean = filePath.getCanonicalPath().contains(dir.getCanonicalPath() + File.separator)
+            if (areRelated) return true
+        }
+
         if (visiting.contains(element)) return false
 
         visiting.add(element)
