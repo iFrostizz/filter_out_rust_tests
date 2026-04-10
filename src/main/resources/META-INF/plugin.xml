@@ -11,6 +11,11 @@
     <depends>org.toml.lang</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-        <usageFilteringRuleProvider implementation="com.github.filteroutrusttests.NotRustTestsUsageFilteringRuleProvider"/>
+        <usageFilteringRuleProvider
+                implementation="com.github.filteroutrusttests.NotRustTestsUsageFilteringRuleProvider"/>
+
+        <applicationService
+                serviceInterface="com.github.filteroutrusttests.FilteringRuleService"
+                serviceImplementation="com.github.filteroutrusttests.FilteringRuleServiceImpl"/>
     </extensions>
 </idea-plugin>
