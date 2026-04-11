@@ -1,17 +1,24 @@
 package com.github.filteroutrusttests
 
 import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.search.searches.ReferencesSearch
 import com.intellij.usages.Usage
 import com.intellij.usages.rules.PsiElementUsage
 import com.intellij.usages.rules.UsageFilteringRule
+import com.intellij.util.concurrency.NonUrgentExecutor
+import io.netty.util.BooleanSupplier
+import kotlinx.datetime.Instant
 import org.rust.lang.core.psi.RsFunction
 import org.rust.lang.core.psi.ext.isTest
 import org.rust.lang.core.psi.ext.isUnderCfgTest
 import java.nio.file.Paths
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.io.path.name
+import kotlin.time.Clock
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 class NotRustTestsUsageFilteringRule : UsageFilteringRule {
     override fun getRuleId(): String = RULE_ID
@@ -47,6 +54,8 @@ class NotRustTestsUsageFilteringRule : UsageFilteringRule {
     private fun isInsideRustTestFunction(
         element: PsiElement, visiting: MutableSet<PsiElement>
     ): Boolean {
+        ProgressManager.checkCanceled()
+
         memo[element]?.let { return it }
 
         if (visiting.contains(element)) return false
