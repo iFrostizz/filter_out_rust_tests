@@ -24,8 +24,15 @@ class NotRustTestsUsageFilteringRule : UsageFilteringRule {
     override fun getRuleId(): String = RULE_ID
 
     private val memo = ConcurrentHashMap<PsiElement, Boolean>()
+    private var lastClearTime: Long = System.currentTimeMillis()
 
     override fun isVisible(usage: Usage): Boolean = ReadAction.compute<Boolean, RuntimeException> {
+        val currentTime = System.currentTimeMillis()
+        if (currentTime - lastClearTime > 1000 * 60) { // Clear memo every minute
+            memo.clear()
+            lastClearTime = currentTime
+        }
+
         val psiUsage = usage as? PsiElementUsage ?: return@compute true
         val element = psiUsage.element ?: return@compute true
 
@@ -33,7 +40,8 @@ class NotRustTestsUsageFilteringRule : UsageFilteringRule {
 
         if (!isRustElement(element)) return@compute true
 
-        return@compute !shouldFilterOut(element)
+        val startTime = System.currentTimeMillis()
+        return@compute !shouldFilterOut(element, startTime)
     }
 
     private fun isRustElement(element: PsiElement): Boolean {
@@ -47,14 +55,18 @@ class NotRustTestsUsageFilteringRule : UsageFilteringRule {
         return p.any { it.name == "tests" || it.name == "benches" }
     }
 
-    private fun shouldFilterOut(element: PsiElement): Boolean {
-        return isInsideRustTestFunction(element, mutableSetOf())
+    private fun shouldFilterOut(element: PsiElement, startTime: Long): Boolean {
+        return isInsideRustTestFunction(element, mutableSetOf(), startTime, 0)
     }
 
     private fun isInsideRustTestFunction(
-        element: PsiElement, visiting: MutableSet<PsiElement>
+        element: PsiElement, visiting: MutableSet<PsiElement>, startTime: Long, depth: Int
     ): Boolean {
         ProgressManager.checkCanceled()
+
+        if (depth > MAX_DEPTH || System.currentTimeMillis() - startTime > TIMEOUT_MS) {
+            return false
+        }
 
         memo[element]?.let { return it }
 
@@ -62,7 +74,7 @@ class NotRustTestsUsageFilteringRule : UsageFilteringRule {
 
         visiting.add(element)
         try {
-            val result = calculateIsInsideRustTest(element, visiting)
+            val result = calculateIsInsideRustTest(element, visiting, startTime, depth)
             memo[element] = result
             return result
         } finally {
@@ -71,7 +83,7 @@ class NotRustTestsUsageFilteringRule : UsageFilteringRule {
     }
 
     private fun calculateIsInsideRustTest(
-        element: PsiElement, visiting: MutableSet<PsiElement>
+        element: PsiElement, visiting: MutableSet<PsiElement>, startTime: Long, depth: Int
     ): Boolean {
         if (element.isUnderCfgTest) return true
 
@@ -81,17 +93,19 @@ class NotRustTestsUsageFilteringRule : UsageFilteringRule {
             val references = ReferencesSearch.search(element)
 
             val allInTests = references.allMatch {
-                isInsideRustTestFunction(it.element, visiting)
+                isInsideRustTestFunction(it.element, visiting, startTime, depth + 1)
             }
 
             if (references.count() > 0 && allInTests) return true
         }
 
         val parent = element.parent ?: return false
-        return isInsideRustTestFunction(parent, visiting)
+        return isInsideRustTestFunction(parent, visiting, startTime, depth + 1)
     }
 
     companion object {
         const val RULE_ID: String = "com.github.filteroutrusttests.notRustTests"
+        const val MAX_DEPTH: Int = 20
+        const val TIMEOUT_MS: Long = 500
     }
 }
