@@ -1,3 +1,5 @@
+mod hi;
+
 pub trait Add {
     fn add(self, other: Self) -> Self;
 }

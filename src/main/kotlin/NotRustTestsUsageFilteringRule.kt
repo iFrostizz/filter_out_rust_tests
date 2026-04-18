@@ -36,12 +36,17 @@ class NotRustTestsUsageFilteringRule : UsageFilteringRule {
         val psiUsage = usage as? PsiElementUsage ?: return@compute true
         val element = psiUsage.element ?: return@compute true
 
-        if (isInTestLikeDir(element)) return@compute false
+        if (isInTestLikeDir(element)) {
+            return@compute false
+        }
 
-        if (!isRustElement(element)) return@compute true
+        if (!isRustElement(element)) {
+            return@compute true
+        }
 
         val startTime = System.currentTimeMillis()
-        return@compute !shouldFilterOut(element, startTime)
+        val filterOut = shouldFilterOut(element, startTime)
+        return@compute !filterOut
     }
 
     private fun isRustElement(element: PsiElement): Boolean {
@@ -50,7 +55,8 @@ class NotRustTestsUsageFilteringRule : UsageFilteringRule {
     }
 
     private fun isInTestLikeDir(element: PsiElement): Boolean {
-        val path = element.containingFile?.virtualFile?.path ?: return false
+        val virtualFile = element.containingFile?.virtualFile ?: return false
+        val path = virtualFile.path
         val p = Paths.get(path)
         return p.any { it.name == "tests" || it.name == "benches" }
     }
@@ -85,18 +91,25 @@ class NotRustTestsUsageFilteringRule : UsageFilteringRule {
     private fun calculateIsInsideRustTest(
         element: PsiElement, visiting: MutableSet<PsiElement>, startTime: Long, depth: Int
     ): Boolean {
-        if (element.isUnderCfgTest) return true
+        if (element.isUnderCfgTest) {
+            return true
+        }
 
         if (element is RsFunction) {
-            if (element.isTest) return true
+            if (element.isTest) {
+                return true
+            }
 
             val references = ReferencesSearch.search(element)
 
             val allInTests = references.allMatch {
-                isInsideRustTestFunction(it.element, visiting, startTime, depth + 1)
+                val inTest = isInsideRustTestFunction(it.element, visiting, startTime, depth + 1)
+                inTest
             }
 
-            if (references.count() > 0 && allInTests) return true
+            if (references.count() > 0 && allInTests) {
+                return true
+            }
         }
 
         val parent = element.parent ?: return false
