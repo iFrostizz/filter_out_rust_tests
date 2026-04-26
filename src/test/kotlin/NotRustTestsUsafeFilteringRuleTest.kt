@@ -55,6 +55,7 @@ import kotlinx.coroutines.MainScope
 import org.rust.cargo.toolchain.tools.Cargo
 import org.rust.ide.newProject.openFiles
 import org.rust.lang.core.psi.rustPsiManager
+import org.rust.openapiext.isUnitTestMode
 
 data class Position(
     var line: Int = 0, var column: Int = 0
@@ -150,7 +151,12 @@ class NotRustTestsUsageFilteringRuleTest : BasePlatformTestCase() {
             val finalPath = if (contentRoot != null) {
                 VfsUtil.getRelativePath(virtualFile, contentRoot) ?: virtualPath
             } else {
-                virtualPath
+                val tempDirPath = myFixture.tempDirFixture.tempDirPath
+                if (virtualPath.startsWith(tempDirPath)) {
+                    virtualPath.substring(tempDirPath.length).trimStart('/')
+                } else {
+                    virtualPath
+                }
             }
 
             map.getOrPut(finalPath) { mutableMapOf() }[Position(position.line + 1, position.column + 1)] = usage
@@ -192,6 +198,7 @@ class NotRustTestsUsageFilteringRuleTest : BasePlatformTestCase() {
     }
 
     private fun runProjectsTestCase(testCase: Pair<String, ProjectTestCases>): Result<Unit> = runCatching {
+
         val (relativeDir, projectTestCases) = testCase
         val projectRoot = "$relativeDir/project"
 
@@ -214,7 +221,8 @@ class NotRustTestsUsageFilteringRuleTest : BasePlatformTestCase() {
 //        }
 //        printTree(root!!)
 
-        val testProjectService = TestCargoProjectsServiceImpl(myFixture.project, MainScope())
+        println("Will create test project")
+        val testProjectService = TestCargoProjectsServiceImpl(myFixture.project, MainScope(), module)
 //        val testProject = testProjectService.createTestProject(Path(projectRoot).resolve("Cargo.toml"))
         val testProject = testProjectService.createTestProject(manifestPath)
 
