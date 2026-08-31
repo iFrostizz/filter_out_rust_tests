@@ -1,3 +1,9 @@
+# ⚠️ THIS REPOSITORY HAS MOVED
+
+This repository is no longer maintained. We have moved development to a new repository.
+
+**Please visit the new repository here: https://github.com/franfrandev/clarity**
+
 # Filter Out Rust Tests
 
 IntelliJ Platform plugin that adds a **Find Usages** filter to hide usages that are inside Rust `#[test]` functions.
